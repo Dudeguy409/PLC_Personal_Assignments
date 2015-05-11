@@ -192,6 +192,10 @@
 		(vals (list-of scheme-value?))
 		(env environment?)
 	]
+	 [recursively-extended-env-record
+      (syms (list-of symbol?))
+      (vals (list-of scheme-value?))
+      (env environment?)]
 )
 
 
@@ -284,7 +288,20 @@
 	(let ([pos (list-find-position sym syms)])
       	  (if (number? pos)
 	      (succeed (list-ref vals pos))
-	      (apply-env env sym succeed fail)))))))
+	      (apply-env env sym succeed fail))))
+      [recursively-extended-env-record
+        (syms vals old-env)                 ;; Going to extend the old env
+        (let ([pos (list-find-position sym syms)])
+        (if (number? pos)
+          (closure  (list(list-ref syms pos )) (list(list-ref vals pos)) env)
+          (apply-env old-env sym succeed fail)))]
+    )
+  )
+)
+
+(define extend-env-recursively
+  (lambda (idss bodies old-env)
+    (recursively-extended-env-record idss bodies old-env)))
 
 
 
@@ -454,6 +471,32 @@
 							)
 								(car 
 									(reverse(map 
+										(lambda (x) (eval-exp x new-env))
+										body
+									))
+								)
+						)	
+				)
+			]
+			[letrec-exp (id body) 
+				(let 
+					(
+						[syms 
+							(map get-tuple-id id)
+						]
+						[vals 
+							(map 
+								(lambda (x) (eval-exp x env))
+								(map get-tuple-exp id)
+							)
+						]
+					) 
+						(let 
+							(
+								[new-env (extend-env-recursively syms vals env)]
+							)
+								(car
+									(reverse (map
 										(lambda (x) (eval-exp x new-env))
 										body
 									))

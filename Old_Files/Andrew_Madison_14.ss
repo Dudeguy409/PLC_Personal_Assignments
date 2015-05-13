@@ -102,7 +102,7 @@
 									[var-exp (id)  
 										(named-let-exp
 											name
-											(if (not (list? (cadr datum))) (eopl:error 'parse-exp "list of tuples in the named let expression is not a list" datum) (map parse-tuple (cadr datum)))
+											(if (not (list? (caddr datum))) (eopl:error 'parse-exp "list of tuples in the named let expression is not a list" datum) (map parse-tuple (caddr datum)))
 											(if (null? (cdddr datum)) (eopl:error 'parse-exp "no body contained in the let expression" datum) (map parse-exp (cdddr datum)) )
 										)
 							 		][else (eopl:error 'parse-exp "the name for the named-let was not a symbol" datum)]
@@ -572,7 +572,7 @@
                    "Attempt to apply bad procedure: ~s" 
                     proc-value)])))
 
-(define *prim-proc-names* '(+ - * add1 sub1 cons = equal? vector eq? car cadar > < cdr cadr caar list list? length number? >=  <= symbol? vector? vector->list list->vector pair? not procedure? zero? / null? set-car! set-cdr! vector-ref apply map))
+(define *prim-proc-names* '(+ - * add1 sub1 cons = vector-set! equal? vector eq? car cadar > < cdr cadr caar list list? length number? >=  <= symbol? vector? vector->list list->vector pair? not procedure? zero? / null? set-car! set-cdr! vector-ref apply map))
 
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
@@ -639,6 +639,7 @@
 			[(zero?) (zero? (car args))]
 			[(/) (apply / args)]
 			[(vector-ref) (apply vector-ref args)]
+			[(vector-set!) (apply vector-set! args)]
 			[(vector) (apply vector args)]
 			[(set-cdr!) (set-cdr! (car args) (cadr args))]
 			[(set-car!) (set-car! (car args) (cadr args))]
@@ -676,10 +677,10 @@
 				(let 
 					(
 						[rslt (split-passed-in-args (cdr ls)  (- len 1))]
-					)  
-					(list (cons (car ls) (car rslt)) (cadr rslt) )  
-				) 
-			] 
-		)  
-	)  
+					)
+					(list (cons (car ls) (car rslt)) (cadr rslt) )
+				)
+			]
+		)
+	)
 )
